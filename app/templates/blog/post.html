@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% if post.description %}{{ post.description }}{% else %}{{ post.title }} - Ananya Pathak's Blog{% endif %}">
+    <meta name="keywords" content="{% if post.tags %}{% for tag in post.tags %}{{ tag }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}">
+    <meta name="author" content="Ananya Pathak">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="{{ post.title }} | Ananya Pathak">
+    <meta property="og:description" content="{% if post.description %}{{ post.description }}{% else %}{{ post.title }}{% endif %}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://ananyapathak.xyz/blog/{{ post.slug }}">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ post.title }} | Ananya Pathak">
+    <meta name="twitter:description" content="{% if post.description %}{{ post.description }}{% else %}{{ post.title }}{% endif %}">
+    
+    <title>{{ post.title }} | Ananya Pathak</title>
+
+    <!-- Add stylesheet link -->
+    <link rel="stylesheet" href="/static/styles.css">
+    
+    <!-- Additional styling for blog posts -->
+    <style>
+        .blog-content {
+            line-height: 1.6;
+            max-width: none;
+        }
+        
+        .blog-content h1, .blog-content h2, .blog-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .blog-content h1 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        
+        .blog-content h2 {
+            color: #444;
+        }
+        
+        .blog-content h3 {
+            color: #555;
+        }
+        
+        .blog-content pre {
+            background-color: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 4px solid #007acc;
+        }
+        
+        .blog-content code {
+            background-color: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .blog-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .blog-content blockquote {
+            border-left: 4px solid #007acc;
+            margin: 1rem 0;
+            padding-left: 1rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .blog-content ul, .blog-content ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        
+        .blog-content li {
+            margin: 0.5rem 0;
+        }
+        
+        .blog-meta {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .blog-tags {
+            margin: 1rem 0;
+        }
+        
+        .blog-tags span {
+            background-color: #f0f0f0;
+            padding: 0.2rem 0.5rem;
+            margin: 0.1rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+    </style>
+    
+    <!-- Your existing Plausible Analytics script -->
+    <script defer data-domain="ananyapathak.xyz" src="https://plausible.ananyapathak.xyz/js/script.file-downloads.hash.outbound-links.tagged-events.js"></script>
+    <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+</head>
+<body>
+    <header>
+        <h1><a href="/" style="text-decoration: none; color: inherit;">Ananya Pathak</a></h1>
+        <nav style="margin: 1rem 0;">
+            <a href="/" style="margin-right: 1rem;">Home</a>
+            <a href="/blog" style="margin-right: 1rem;">Blog</a>
+            <span style="color: #666;">{{ post.title }}</span>
+        </nav>
+    </header>
+
+    <main>
+        <article>
+            <div class="blog-meta">
+                {% if post.date %}
+                <p style="margin: 0;">Published: {{ post.date }}</p>
+                {% endif %}
+                
+                {% if post.tags %}
+                <div class="blog-tags">
+                    {% for tag in post.tags %}
+                    <span>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="blog-content">
+                {{ post.content | safe }}
+            </div>
+        </article>
+        
+        <nav style="margin: 2rem 0; padding: 1rem 0; border-top: 1px solid #eee;">
+            <a href="/blog" style="color: #007acc; text-decoration: none;">← Back to all posts</a>
+        </nav>
+    </main>
+
+    <footer>
+        <p><a href="/">← Back to main page</a></p>
+    </footer>
+</body>
+</html> 
