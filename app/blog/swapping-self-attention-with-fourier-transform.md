@@ -80,4 +80,21 @@ static/images/blog/1/1.6.png)*Fnet-Bert-Tiny and bert-tiny (vanilla) on CPU - Tr
 static/images/blog/1/1.7.png)*Fnet-Bert-Tiny vs bert-tiny (vanilla)*
 
 ![Accuracy vs inference speed by model and device](/
-static/images/blog/1/1.7.png)*Accuracy vs inference speed by model and device*
+static/images/blog/1/1.8.png)*Accuracy vs inference speed by model and device*
+
+### Conclusion
+
+#### Inferece time
+
+- on CPU fnet-bert-tiny is ~43% faster than vanilla-bert-tiny
+- on GPU fnet-bert-tiny is ~24% faster than vanilla-bert-tiny
+
+#### Training time
+
+- on CPU fnet-bert-tiny trains ~33% faster than vanilla-bert-tiny
+- on GPU fnet-bert-tiny trains ~9% faster than vanilla-bert-tiny
+
+#### Accuracy
+
+- on CPU fnet-bert-tiny achieves ~96% accuracy of vanilla-bert-tiny
+- on GPU fnet-bert-tiny achieves ~96% accuracy of vanilla-bert-tiny
