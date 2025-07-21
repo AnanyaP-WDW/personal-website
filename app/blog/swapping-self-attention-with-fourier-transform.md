@@ -2,16 +2,36 @@
 title: Swapping self attention with fourier transforms
 date: 10-07-2025
 description: Key considerations when building machine learning systems that need to perform reliably in production environments.
-tags: ["transformers", "low-latency", "custom architecture", "fourier transform"]
+tags: ["transformers", "fast inference", "fourier transform"]
 ---
 
 # Swapping self attention with fourier transforms
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Hypothesis](#hypothesis)
+3. [Finetuning on IMDB binary classification on GPU](#finetuning-on-imdb-binary-classification-on-gpu)
+   - [Finetuning results - Vanilla-Bert-Tiny](#finetuning-results---vanilla-bert-tiny)
+   - [Finetuning results - Fnet-Bert-Tiny](#finetuning-results---fnet-bert-tiny)
+   - [Time required for training](#time-required-for-training)
+4. [Finetuning on IMDB binary classification on CPU](#finetuning-on-imdb-binary-classification-on-cpu)
+   - [Graphical results](#graphical-results)
+5. [Conclusion](#conclusion)
+   - [Inference time](#inference-time)
+   - [Training time](#training-time)
+   - [Accuracy](#accuracy)
+6. [Reference](#reference)
+
+---
+
+## Introduction
 
 This is an experiment to speed up traditional transformer based encoders , with limited accuracy cost, by replacing the self attention layer with 2D fourier transform.  
 
 Self attention provides a way to "mix" the input tokens, so that we can establish relationships between each token of the input. The time complexity for such operation is O(n2). 
 There have been many alternatives to reduce this complexity; one such almost radical work is by using fourier transform instead of self attention. This will replace the learnable layer with a fixed (non-learnable) way to "mix" the input tokens. 
-For this experiment I will use a 2d transform across 2 dimensions ie. across sequence length and hidden dimenension. This time complexity comes out to be O(nlogn). paper link
+For this experiment I will use a 2d transform across 2 dimensions ie. across sequence length and hidden dimenension. This time complexity comes out to be O(nlogn). [FNet- original paper] (https://www.alphaxiv.org/abs/2105.03824v4)
 
 
 ## Hypothesis
@@ -53,7 +73,7 @@ Throught the experiment , the validation loss is consistantly going up after the
 ![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.1.png)*Vanilla-Bert-Tiny trained on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset.*
 
 ### FInetuning results - Fnet-Bert-Tiny
-![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset ](/static/images/blog/1/1.2.png)*Fnet-Bert-Tiny trianed on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset. In this case also the model starts to overfir after the 3rd epoch*
+![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset ](/static/images/blog/1/1.2.png)*Fnet-Bert-Tiny trianed on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
 ## Time required for training
 
@@ -62,15 +82,13 @@ static/images/blog/1/1.3.png)*Fnet-Bert-Tiny and bert-tiny (vanilla) on GPU - Tr
 
 Similary to Vanilla-Bert-Tiny finetuning, the Fnet variant also exhibits spike in validation loss after the 3rd epoch.
 
-> To get the best results, both fnet-bert-tiny and bert-tiny wer chosen after the third epoch to limit over-fitting
-
 ## Finetuning on IMDB binary classification on CPU
 
 
-![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.4.png)*Vanilla-Bert-Tiny trined on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset. The model starts to overfit after the 3rd epoch.*
+![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.4.png)*Vanilla-Bert-Tiny trined on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
 
-![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.5.png)*Fnet-Bert-Tiny trianed on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset. In this case also the model starts to overfir after the 3rd epoch*
+![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.5.png)*Fnet-Bert-Tiny trianed on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
 ![Fnet-Bert-Tiny and bert-tiny (vanilla) - Training and inference time](/
 static/images/blog/1/1.6.png)*Fnet-Bert-Tiny and bert-tiny (vanilla) on CPU - Training and inference time*
@@ -98,3 +116,8 @@ static/images/blog/1/1.8.png)*Accuracy vs inference speed by model and device*
 
 - on CPU fnet-bert-tiny achieves ~96% accuracy of vanilla-bert-tiny
 - on GPU fnet-bert-tiny achieves ~96% accuracy of vanilla-bert-tiny
+
+### Reference
+
+1. [FNet: Mixing Tokens with Fourier Transforms] (https://www.alphaxiv.org/abs/2105.03824v4)
+2. 
