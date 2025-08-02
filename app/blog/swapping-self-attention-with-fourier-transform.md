@@ -9,19 +9,19 @@ tags: ["transformers", "fast inference", "fourier transform"]
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
-2. [Hypothesis](#hypothesis)
-3. [Finetuning on IMDB binary classification on GPU](#finetuning-on-imdb-binary-classification-on-gpu)
-   - [Finetuning results - Vanilla-Bert-Tiny](#finetuning-results---vanilla-bert-tiny)
-   - [Finetuning results - Fnet-Bert-Tiny](#finetuning-results---fnet-bert-tiny)
-   - [Time required for training](#time-required-for-training)
-4. [Finetuning on IMDB binary classification on CPU](#finetuning-on-imdb-binary-classification-on-cpu)
-   - [Graphical results](#graphical-results)
-5. [Conclusion](#conclusion)
-   - [Inference time](#inference-time)
-   - [Training time](#training-time)
-   - [Accuracy](#accuracy)
-6. [Reference](#reference)
+1. [`Introduction`](#introduction)
+2. [`Hypothesis`](#hypothesis)
+3. [`Finetuning on IMDB binary classification on GPU`](#finetuning-on-imdb-binary-classification-on-gpu)
+   - [`Finetuning results - Vanilla-Bert-Tiny`](#finetuning-results---vanilla-bert-tiny)
+   - [`Finetuning results - Fnet-Bert-Tiny`](#finetuning-results---fnet-bert-tiny)
+   - [`Time required for training`](#time-required-for-training)
+4. [`Finetuning on IMDB binary classification on CPU`](#finetuning-on-imdb-binary-classification-on-cpu)
+   - [`Graphical results`](#graphical-results)
+5. [`Conclusion`](#conclusion)
+   - [`Inference time`](#inference-time)
+   - [`Training time`](#training-time)
+   - [`Accuracy`](#accuracy)
+6. [`Reference`](#reference)
 
 ---
 
@@ -117,7 +117,10 @@ static/images/blog/1/1.8.png)*Accuracy vs inference speed by model and device*
 - on CPU fnet-bert-tiny achieves ~96% accuracy of vanilla-bert-tiny
 - on GPU fnet-bert-tiny achieves ~96% accuracy of vanilla-bert-tiny
 
+### FNet variations
+
+different implemtation of fourier transformns in pytorch - https://docs.pytorch.org/docs/stable/fft.html
+
 ### Reference
 
 1. [FNet: Mixing Tokens with Fourier Transforms] (https://www.alphaxiv.org/abs/2105.03824v4)
-2. 
