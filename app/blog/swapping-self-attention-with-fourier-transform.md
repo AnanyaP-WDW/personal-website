@@ -90,7 +90,7 @@ Where:
 
 Each element of the Frequency tensor $X_k$ is the function of summation of all the elements in $x$. This ensures `mixing` of the individual elements of input tensor $X$.
 
-(An exmaple of applying fourier transform)[https://www.youtube.com/watch?v=x3QxJnI9jNI&t=148s]
+[An exmaple of applying fourier transform](https://www.youtube.com/watch?v=x3QxJnI9jNI&t=148s)
 
 ###  Finetuning on IMDb binary classification on GPU
 
