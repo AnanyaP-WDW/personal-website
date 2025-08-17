@@ -1,27 +1,31 @@
 ---
-title: Swapping self attention with fourier transforms
+title: Swapping Self-Attention with Fourier Transforms
 date: 10-07-2025
 description: Key considerations when building machine learning systems that need to perform reliably in production environments.
 tags: ["transformers", "fast inference", "fourier transform"]
 ---
 
-# Swapping self attention with fourier transforms
+# Swapping Self-Attention with Fourier Transforms
 
 ## Table of Contents
 
 1. [`Introduction`](#introduction)
 2. [`Hypothesis`](#hypothesis)
-3. [`Finetuning on IMDB binary classification on GPU`](#finetuning-on-imdb-binary-classification-on-gpu)
-   - [`Finetuning results - Vanilla-Bert-Tiny`](#finetuning-results---vanilla-bert-tiny)
-   - [`Finetuning results - Fnet-Bert-Tiny`](#finetuning-results---fnet-bert-tiny)
+3. [`Experiment`](#experiment)
+   - [`Assumptions and tools`](#assumptions-and-tools)
+   - [`Why FFT ensures token mixing`](#why-fft-ensures-token-mixing)
+4. [`Fine-tuning on IMDb binary classification (GPU)`](#fine-tuning-on-imdb-binary-classification-gpu)
+   - [`Results — BERT-Tiny (vanilla)`](#results-bert-tiny-vanilla)
+   - [`Results — FNet-BERT-Tiny`](#results-fnet-bert-tiny)
    - [`Time required for training`](#time-required-for-training)
-4. [`Finetuning on IMDB binary classification on CPU`](#finetuning-on-imdb-binary-classification-on-cpu)
+5. [`Fine-tuning on IMDb binary classification (CPU)`](#fine-tuning-on-imdb-binary-classification-cpu)
    - [`Graphical results`](#graphical-results)
-5. [`Conclusion`](#conclusion)
+6. [`Conclusion`](#conclusion)
    - [`Inference time`](#inference-time)
    - [`Training time`](#training-time)
    - [`Accuracy`](#accuracy)
-6. [`Reference`](#reference)
+7. [`FNet variations`](#fnet-variations)
+8. [`References`](#references)
 
 ---
 
@@ -45,7 +49,7 @@ The realtive training, inference time and performace will vary based on the impl
 
 ## Experiment
 
-## Assumptions/Tools
+### Assumptions and tools
 
 - Using a small embedding model like bert-tiny
 - Only swap the self attenions layer with 2d fourier transform, keeping the rest identical to the base model ie. bert-tiny
@@ -92,16 +96,16 @@ Each element of the Frequency tensor $X_k$ is the function of summation of all t
 
 [An exmaple of applying fourier transform](https://www.youtube.com/watch?v=x3QxJnI9jNI&t=148s)
 
-###  Finetuning on IMDb binary classification on GPU
+## Fine-tuning on IMDb binary classification (GPU)
 
 IMDb is a small dataset for classifying sentiments (positive or negative) based on a text. I will use this data to test out the hypothesis. 
 
 Throught the experiment, the validation loss is consistantly going up after the 6th/7th epoch, however for brevity I will only choose the best performing model based on accuracy irrespective of it midly overfitting on the train data. 
 
-### Finetuning results - Vanilla-Bert-Tiny
+### Results — BERT-Tiny (vanilla)
 ![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.1.png)*Vanilla-Bert-Tiny trained on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset.*
 
-### FInetuning results - Fnet-Bert-Tiny
+### Results — FNet-BERT-Tiny
 ![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset ](/static/images/blog/1/1.2.png)*Fnet-Bert-Tiny trianed on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
 ### Time required for training
@@ -111,7 +115,7 @@ static/images/blog/1/1.3.png)*Fnet-Bert-Tiny and bert-tiny (vanilla) on GPU - Tr
 
 Similar to Vanilla-Bert-Tiny finetuning, the Fnet variant also exhibits spike in validation loss after the 7th/8th epoch.
 
-### Finetuning on IMDb binary classification on CPU
+## Fine-tuning on IMDb binary classification (CPU)
 
 ![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.4.png)*Vanilla-Bert-Tiny trined on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
@@ -127,27 +131,32 @@ static/images/blog/1/1.7.png)*Fnet-Bert-Tiny vs bert-tiny (vanilla)*
 ![Accuracy vs inference speed by model and device](/
 static/images/blog/1/1.8.png)*Accuracy vs inference speed by model and device*
 
-### Conclusion
+## Conclusion
 
-#### Inferece time
+### Inference time
 
 - on CPU fnet-bert-tiny is ~43% faster than vanilla-bert-tiny
 - on GPU fnet-bert-tiny is ~24% faster than vanilla-bert-tiny
 
-#### Training time
+### Training time
 
 - on CPU fnet-bert-tiny trains ~33% faster than vanilla-bert-tiny
 - on GPU fnet-bert-tiny trains ~9% faster than vanilla-bert-tiny
 
-#### Accuracy
+### Accuracy
 
 - on CPU fnet-bert-tiny achieves ~96% accuracy of vanilla-bert-tiny
 - on GPU fnet-bert-tiny achieves ~96% accuracy of vanilla-bert-tiny
 
-### FNet variations
+## FNet variations
 
 These are the different implemtations of [fourier transformns in pytorch](https://docs.pytorch.org/docs/stable/fft.html)
 
-### Reference
+## Conclusion
+
+Task specific smaller models can be viable in situations where latency needs to be low.
+It doesn't makes sense to use local self hosted models or even API's for simple tasks like binary classification. Fourier modified transformers (along with attention based optimizations like flash attention and paged attention) can provide additional latency cuts by optimizing the overhead computational cost.  
+
+## References
 
 1. [FNet: Mixing Tokens with Fourier Transforms](https://www.alphaxiv.org/abs/2105.03824v4)
