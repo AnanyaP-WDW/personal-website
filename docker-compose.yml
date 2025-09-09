@@ -6,6 +6,6 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      - ./app:/app/app
+      #- ./app:/app/app
     environment:
       - PYTHONUNBUFFERED=1 
