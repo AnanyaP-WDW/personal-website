@@ -212,6 +212,7 @@ nav {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
     gap: clamp(0.5rem, 2vw, 1rem);
     margin: 1rem 0;
 }
