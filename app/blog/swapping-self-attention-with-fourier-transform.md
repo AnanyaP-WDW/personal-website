@@ -1,31 +1,31 @@
 ---
-title: Swapping Self-Attention with Fourier Transforms
+
+## title: Swapping Self-Attention with Fourier Transforms
 date: 10-07-2025
 description: Key considerations when building machine learning systems that need to perform reliably in production environments.
 tags: ["transformers", "fast inference", "fourier transform"]
----
 
 # Swapping Self-Attention with Fourier Transforms
 
 ## Table of Contents
 
-1. [`Introduction`](#introduction)
-2. [`Hypothesis`](#hypothesis)
-3. [`Experiment`](#experiment)
-   - [`Assumptions and tools`](#assumptions-and-tools)
-   - [`Why FFT ensures token mixing`](#why-fft-ensures-token-mixing)
-4. [`Fine-tuning on IMDb binary classification (GPU)`](#fine-tuning-on-imdb-binary-classification-gpu)
-   - [`Results — BERT-Tiny (vanilla)`](#results-bert-tiny-vanilla)
-   - [`Results — FNet-BERT-Tiny`](#results-fnet-bert-tiny)
-   - [`Time required for training`](#time-required-for-training)
-5. [`Fine-tuning on IMDb binary classification (CPU)`](#fine-tuning-on-imdb-binary-classification-cpu)
-   - [`Graphical results`](#graphical-results)
-6. [`Conclusion`](#conclusion)
-   - [`Inference time`](#inference-time)
-   - [`Training time`](#training-time)
-   - [`Accuracy`](#accuracy)
-7. [`FNet variations`](#fnet-variations)
-8. [`References`](#references)
+1. `[Introduction](#introduction)`
+2. `[Hypothesis](#hypothesis)`
+3. `[Experiment](#experiment)`
+  - `[Assumptions and tools](#assumptions-and-tools)`
+  - `[Why FFT ensures token mixing](#why-fft-ensures-token-mixing)`
+4. `[Fine-tuning on IMDb binary classification (GPU)](#fine-tuning-on-imdb-binary-classification-gpu)`
+  - `[Results — BERT-Tiny (vanilla)](#results-bert-tiny-vanilla)`
+  - `[Results — FNet-BERT-Tiny](#results-fnet-bert-tiny)`
+  - `[Time required for training](#time-required-for-training)`
+5. `[Fine-tuning on IMDb binary classification (CPU)](#fine-tuning-on-imdb-binary-classification-cpu)`
+  - `[Graphical results](#graphical-results)`
+6. `[Conclusion](#conclusion)`
+  - `[Inference time](#inference-time)`
+  - `[Training time](#training-time)`
+  - `[Accuracy](#accuracy)`
+7. `[FNet variations](#fnet-variations)`
+8. `[References](#references)`
 
 ---
 
@@ -36,7 +36,6 @@ This is an experiment to speed up traditional transformer based encoders, with l
 Self attention provides a way to "mix" the input tokens, so that we can establish relationships between each token of the input. Since each token interacts with all the other tokens, the time complexity for such operation is O(n2). 
 There have been many alternatives to reduce this complexity, one such almost radical work is to use fourier transform instead. In a Fourier transform based language model one learning layer is reaplce with a fixed (non-learnable) fucntion, which ensures the 'mixing' of tokens.
 For this experiment I will apply a 2d transform across the two input dimensions ie. $(sequence-length, hidden- dimenension)$ just like the [FNet- original paper.](https://www.alphaxiv.org/abs/2105.03824v4)
-
 
 ## Hypothesis
 
@@ -57,6 +56,7 @@ The realtive training, inference time and performace will vary based on the impl
 - Intuitively the fouruier transform will decompose the input signal of shape $(sequence-length , hidden-dimension)$ into the frequency domain, which will be passed on to the next layer. 
 - Test on simple NLP task like binary classification - imdb. 
 - There are many implemetations of doing a 2D fourier transform. For this experiment I will be using this implemetation inspired from the orignal Fnet paper.
+
 ```python
 class FNetBlock(nn.Module):
 """The FNet block which replaces the self-attention layer."""
@@ -103,10 +103,12 @@ IMDb is a small dataset for classifying sentiments (positive or negative) based 
 Throught the experiment, the validation loss is consistantly going up after the 6th/7th epoch, however for brevity I will only choose the best performing model based on accuracy irrespective of it midly overfitting on the train data. 
 
 ### Results — BERT-Tiny (vanilla)
-![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.1.png)*Vanilla-Bert-Tiny trained on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset.*
+
+Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset*Vanilla-Bert-Tiny trained on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset.*
 
 ### Results — FNet-BERT-Tiny
-![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset ](/static/images/blog/1/1.2.png)*Fnet-Bert-Tiny trianed on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
+
+Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset *Fnet-Bert-Tiny trianed on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
 ### Time required for training
 
@@ -117,14 +119,15 @@ Similar to Vanilla-Bert-Tiny finetuning, the Fnet variant also exhibits spike in
 
 ## Fine-tuning on IMDb binary classification (CPU)
 
-![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.4.png)*Vanilla-Bert-Tiny trined on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
+Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset*Vanilla-Bert-Tiny trined on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
-![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.5.png)*Fnet-Bert-Tiny trianed on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
+Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset*Fnet-Bert-Tiny trianed on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
 ![Fnet-Bert-Tiny and bert-tiny (vanilla) - Training and inference time](/
 static/images/blog/1/1.6.png)*Fnet-Bert-Tiny and bert-tiny (vanilla) on CPU - Training and inference time*
 
-### Graphical results 
+### Graphical results
+
 ![Fnet-Bert-Tiny vs bert-tiny (vanilla) - Training and inference time](/
 static/images/blog/1/1.7.png)*Fnet-Bert-Tiny vs bert-tiny (vanilla)*
 
@@ -160,3 +163,4 @@ It doesn't makes sense to use local self hosted models or even API's for simple 
 ## References
 
 1. [FNet: Mixing Tokens with Fourier Transforms](https://www.alphaxiv.org/abs/2105.03824v4)
+
