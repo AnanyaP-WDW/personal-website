@@ -23,9 +23,8 @@ tags: ["MLOps", "Parquet", "PyArrow", "Kubernetes", "Machine Learning"]
 
 ## Why OOM Happens in Training Jobs
 
-Out of memory (OOM) in MLops system are not often talked about and often overshadowed by more cool things like model training, architecture etc. Running real world MLops jobs on a k8 cluster can be a tedious process, often resulting in hours of troubleshooting errors and bugs which require tediously reading traces. One such issue that I have constantly faced over the years in the OOMKilled error. It's a k8's status that forcefully terminated the linux kernel because a process exceeded the allocated memory on the host node. 
-one solution is to incerease the hw limits of your pod or to split the job across pods. A more rigourous solution is to reduce object memory - use apache paraquet and apache arrow. 
-In practice OOMKilled usually happens when a ML pipeline loads all splits (`train`, `val`, `test`) into memory at once, then creates additional copies or dusring complex ETL or data trasnformation jobs:
+Troubleshooting out of memory (OOM) errors in MLops systems are often not talked about and overshadowed by more trendy applications like model training, architecture, tuning etc. Running real world data engineering and ML pipelines on a k8 cluster can be a tedious process, resulting in hours of troubleshooting errors and bugs which require tediously reading traces. One such issue that I have constantly faced over the years in the OOMKilled error. It's a k8's status that forcefully terminated the linux kernel because a process exceeded the allocated memory on the host node. One solution for this problem is to incerease the hw limits of your pod or to split the job across pods. A more rigourous solution is to reduce both interstitial and final object memory - this is where paraquet and arrow are used. 
+In practice OOMKilled usually happens when a ML pipeline loads all splits (`train`, `val`, `test`) into memory at once, then creates additional copies or during complex ETL or data trasnformation jobs. These objects can be of differnt types:
 
 - S3 bytes in memory
 - NumPy arrays
@@ -38,7 +37,7 @@ If data is large, peak memory can be several times larger than the dataset itsel
 
 ## Why Parquet Helps
 
-Parquet is a columnar, compressed storage format.
+Parquet is a columnar, compressed storage format designed to cut peak object memory.
 
 Key benefits:
 
@@ -47,7 +46,7 @@ Key benefits:
 - Supports chunked reading
 - Good fit for analytical/ML tabular data
 
-Compared to a single giant `.npy` load, Parquet allows incremental processing.
+Example: unlike loading a massive `.npy` file all at once, Parquet lets you process data incrementally in manageable chunks.
 
 ---
 
@@ -55,7 +54,7 @@ Compared to a single giant `.npy` load, Parquet allows incremental processing.
 
 `pyarrow` gives fast Parquet readers/writers and record-batch iteration.
 
-Typical pattern:
+Typical pattern that I use for building such systems:
 
 1. List Parquet part files under an S3/MinIO prefix
 2. Open one part file
