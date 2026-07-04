@@ -61,7 +61,13 @@ def parse_blog_post(file_path: str) -> Dict:
 
     # Convert markdown to HTML
     html_content = markdown.markdown(
-        markdown_content, extensions=["codehilite", "fenced_code"]
+        markdown_content,
+        extensions=["codehilite", "fenced_code", "pymdownx.arithmatex"],
+        extension_configs={
+            "pymdownx.arithmatex": {
+                "generic": True,
+            }
+        },
     )
 
     # Get filename without extension for slug
