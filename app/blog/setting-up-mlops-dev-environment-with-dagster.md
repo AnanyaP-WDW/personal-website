@@ -18,17 +18,17 @@ tags: ["MLOps", "Dagster", "data engineering", "scaling"]
 
 ## Why specialised tooling for MLOps
 
-MLOps is a specialised subset of DevOps mainly catering to building pipelines for creating training data, feature engineering, training models, sclaed hyper-parameter tuning, evaluations and benchmarks. The main requirements can be summarised as foolws:
+MLOps is a specialised subset of DevOps mainly catering to building pipelines for creating training data, feature engineering, training models, sclaed hyper-parameter tuning, evaluations and benchmarks. The main requirements can be summarised as follows:
 1) Scheduler 
-2) Persistent storage and viewing runs in a easy to decipher UI
+2) Persistent storage and a good UI to view the runs
 3) Ability to add triggers, cron etc
 4) Effecient hardware utilization
 
-Creting something from scratch is an overhead on the mlops and engineering teams. Thats why teams try to use pre-exisitng tooling that has been tested through oss development. There are many options available in the market like airflow, prefect, dagster, kubeflow, flyte etc. In this blog I will be creaging a dev environment using Dagster.
+Creating something from scratch is an overhead on the mlops and engineering teams. Thats why teams try to use pre-exisitng tooling that has been tested through oss development. There are many options available in the market like airflow, prefect, dagster, kubeflow, flyte etc. In this blog I will be creaging a dev environment using Dagster.
 
 ## Dagster
 
-We will need a relational database like postgres, a object storage service like minio (I/O manager for storing intermediate steps), a daemon for scheduling Dagster workflows and a Dagster webserver. Based on your teams fimiliarity we can keep all the workflow in a single image (not recommende for largeer workflows) or separately. I like to keep each workflow as a separate image, and these in turn can be added to the docker compose. 
+We will need a relational database like postgres, a object storage service like minio (I/O manager for storing intermediate steps), a daemon for scheduling Dagster workflows and a Dagster webserver. Based on the teams fimiliarity, one can keep all the workflow in a single image (not recommende for largeer workflows) or separately. I like to keep each workflow as a separate image, and these in turn can be glued together through docker compose. Ideally I like to keep my dev env in dicker and prod on a k8's cluster.
 
 ```yml
 services:
