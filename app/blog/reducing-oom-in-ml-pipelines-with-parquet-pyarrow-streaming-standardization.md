@@ -23,8 +23,8 @@ tags: ["MLOps", "Parquet", "PyArrow", "Kubernetes", "Machine Learning"]
 
 ## Why OOM Happens in Training Jobs
 
-Troubleshooting out of memory (OOM) errors in MLops systems are often not talked about and overshadowed by more trendy applications like model training, architecture, tuning etc. Running real world data engineering and ML pipelines on a k8 cluster is a complex process, requiring hours of troubleshooting errors and seemingly inncocous bugs. This requires on to go deep throug the logs and tediously reading traces. One such issue that I have constantly faced over the years in the OOMKilled error. It's a k8's status that forcefully terminates the linux kernel because a process exceeded the allocated memory on the host node. One solution for this problem is to incerease the hw limits of your pod or to split the job across pods. A more rigourous solution is to reduce both interstitial and final object memory - this is where paraquet and arrow are used. 
-In MLops practice OOMKilled is usually observed when a ML pipeline loads all splits (`train`, `val`, `test`) into memory at once, then creates additional copies; or during complex ETL (data ingestion, cleaning, validation, labeling etc.) and data trasnformation jobs. These objects can be of differnt types:
+Troubleshooting out-of-memory (OOM) errors in MLOps systems is often overlooked, overshadowed by trendier topics like model training, architecture, and tuning. Running real-world data engineering and ML pipelines on a Kubernetes (k8s) cluster is a complex process, requiring hours of debugging seemingly innocuous bugs. This involves digging through logs and tediously reading traces. One issue I have constantly faced over the years is the OOMKilled error — a Kubernetes status that forcefully terminates a pod because a process exceeded the allocated memory on the host node. One solution is to increase the hardware limits of your pod or split the job across pods. A more rigorous solution is to reduce both intermediate and final object memory — this is where Parquet and Arrow come in.
+In MLOps practice, OOMKilled usually occurs when a pipeline loads all splits (`train`, `val`, `test`) into memory at once and then creates additional copies, or during complex ETL (data ingestion, cleaning, validation, labeling, etc.) and data transformation jobs. These objects can be of different types:
 
 - S3 bytes in memory
 - NumPy arrays
@@ -101,13 +101,13 @@ After each batch:
 
 This keeps peak memory stable and much lower.
 
-Both paraquet and pyarrow are highly compatible with pandas and polars. 
+Both Parquet and PyArrow are highly compatible with pandas and Polars. 
 The flow I generally use is:
 - Parquet bytes are read with ```pyarrow.parquet.ParquetFile(...)```
 - Iteration happens as Arrow RecordBatch objects via ```iter_batches(...)```
-- Then each batch is converted to pandas with ```.to_pandas()``` method
+- Then each batch is converted to pandas with the ```.to_pandas()``` method
 So it is: Parquet -> PyArrow batch -> pandas DataFrame.
-This is how I scan Parquet datasets from S3 and yielding Arrow RecordBatches which in turn can be converted to pandas using:
+This is how I scan Parquet datasets from S3 and yield Arrow RecordBatches, which can then be converted to pandas:
 
 ```py
 def scan_parquet_dataset(
