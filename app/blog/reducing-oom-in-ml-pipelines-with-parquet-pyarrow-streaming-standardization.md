@@ -23,8 +23,8 @@ tags: ["MLOps", "Parquet", "PyArrow", "Kubernetes", "Machine Learning"]
 
 ## Why OOM Happens in Training Jobs
 
-Troubleshooting out of memory (OOM) errors in MLops systems are often not talked about and overshadowed by more trendy applications like model training, architecture, tuning etc. Running real world data engineering and ML pipelines on a k8 cluster can be a tedious process, resulting in hours of troubleshooting errors and bugs which require tediously reading traces. One such issue that I have constantly faced over the years in the OOMKilled error. It's a k8's status that forcefully terminated the linux kernel because a process exceeded the allocated memory on the host node. One solution for this problem is to incerease the hw limits of your pod or to split the job across pods. A more rigourous solution is to reduce both interstitial and final object memory - this is where paraquet and arrow are used. 
-In practice OOMKilled usually happens when a ML pipeline loads all splits (`train`, `val`, `test`) into memory at once, then creates additional copies or during complex ETL or data trasnformation jobs. These objects can be of differnt types:
+Troubleshooting out of memory (OOM) errors in MLops systems are often not talked about and overshadowed by more trendy applications like model training, architecture, tuning etc. Running real world data engineering and ML pipelines on a k8 cluster is a complex process, requiring hours of troubleshooting errors and seemingly inncocous bugs. This requires on to go deep throug the logs and tediously reading traces. One such issue that I have constantly faced over the years in the OOMKilled error. It's a k8's status that forcefully terminates the linux kernel because a process exceeded the allocated memory on the host node. One solution for this problem is to incerease the hw limits of your pod or to split the job across pods. A more rigourous solution is to reduce both interstitial and final object memory - this is where paraquet and arrow are used. 
+In MLops practice OOMKilled is usually observed when a ML pipeline loads all splits (`train`, `val`, `test`) into memory at once, then creates additional copies; or during complex ETL (data ingestion, cleaning, validation, labeling etc.) and data trasnformation jobs. These objects can be of differnt types:
 
 - S3 bytes in memory
 - NumPy arrays
@@ -44,7 +44,7 @@ Key benefits:
 - Stores columns efficiently (good compression)
 - Reads only needed columns when possible
 - Supports chunked reading
-- Good fit for analytical/ML tabular data
+- Good ecosystem for analytical/ML tabular data
 
 Example: unlike loading a massive `.npy` file all at once, Parquet lets you process data incrementally in manageable chunks.
 

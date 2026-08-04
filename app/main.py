@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 import markdown
 import os
 import re
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import List, Dict
 import glob
@@ -16,6 +17,16 @@ templates = Jinja2Templates(directory="app/templates")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
+def normalize_date(value: str) -> str:
+    """Return ISO (YYYY-MM-DD) date or empty string if unparseable."""
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d-%m-%y"):
+        try:
+            return datetime.strptime(value.strip(), fmt).date().isoformat()
+        except ValueError:
+            pass
+    return ""
 
 
 def parse_blog_post(file_path: str) -> Dict:
@@ -74,10 +85,13 @@ def parse_blog_post(file_path: str) -> Dict:
     filename = os.path.basename(file_path)
     slug = os.path.splitext(filename)[0]
 
+    date_iso = normalize_date(metadata.get("date", ""))
+
     return {
         "slug": slug,
         "title": metadata.get("title", slug.replace("-", " ").title()),
-        "date": metadata.get("date", ""),
+        "date": date_iso or metadata.get("date", ""),
+        "date_iso": date_iso,
         "description": metadata.get("description", ""),
         "tags": metadata.get("tags", []),
         "content": html_content,
@@ -115,7 +129,32 @@ async def read_root(request: Request):
 
 @app.get("/sitemap.xml")
 async def sitemap():
-    return FileResponse("app/static/sitemap.xml")
+    root = ET.Element("urlset", {"xmlns": "http://www.sitemaps.org/schemas/sitemap/0.9"})
+
+    def add(loc, lastmod=None, changefreq=None, priority=None):
+        url = ET.SubElement(root, "url")
+        ET.SubElement(url, "loc").text = f"https://ananyapathak.xyz{loc}"
+        if lastmod:
+            ET.SubElement(url, "lastmod").text = lastmod
+        if changefreq:
+            ET.SubElement(url, "changefreq").text = changefreq
+        if priority:
+            ET.SubElement(url, "priority").text = priority
+
+    add("/", changefreq="monthly", priority="1.0")
+    add("/blog", changefreq="weekly", priority="0.8")
+    for post in get_all_blog_posts():
+        add(
+            f"/blog/{post['slug']}",
+            lastmod=post["date_iso"] or None,
+            changefreq="monthly",
+            priority="0.6",
+        )
+
+    return Response(
+        content=ET.tostring(root, encoding="unicode", xml_declaration=True),
+        media_type="application/xml",
+    )
 
 
 @app.get("/robots.txt")

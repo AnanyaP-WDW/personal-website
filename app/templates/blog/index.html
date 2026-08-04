@@ -6,17 +6,20 @@
     <meta name="description" content="Ananya Pathak's Blog - Thoughts on ML engineering, technology, and software development.">
     <meta name="keywords" content="ML Engineering Blog, AI Articles, Machine Learning, Software Development, Tech Blog">
     <meta name="author" content="Ananya Pathak">
+    <link rel="canonical" href="https://ananyapathak.xyz/blog">
     
     <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:title" content="Ananya Pathak's Blog">
     <meta property="og:description" content="Thoughts on ML engineering, technology, and software development">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://ananyapathak.xyz/blog">
+    <meta property="og:image" content="https://ananyapathak.xyz/static/images/profile.png">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Ananya Pathak's Blog">
     <meta name="twitter:description" content="Thoughts on ML engineering, technology, and software development">
+    <meta name="twitter:image" content="https://ananyapathak.xyz/static/images/profile.png">
     
     <title>Blog | Ananya Pathak</title>
 
@@ -46,7 +49,7 @@
                 
                 {% if post.date %}
                 <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">
-                    {{ post.date }}
+                    <time datetime="{{ post.date_iso }}">{{ post.date }}</time>
                 </p>
                 {% endif %}
                 
