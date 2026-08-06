@@ -301,6 +301,35 @@ h3 {
     font-size: 1.1rem;
 }
 
+/* Publications */
+.pub {
+    border-left: 3px solid var(--accent);
+    padding: 0.15rem 0 0.15rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.pub-title a {
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 1.1rem;
+    line-height: 1.35;
+}
+
+.pub-title a:hover {
+    color: var(--accent);
+}
+
+.pub-venue {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0.2rem 0;
+}
+
+.pub-authors {
+    color: var(--faint);
+    font-size: 0.85rem;
+}
+
 /* Blog post list */
 .post-list {
     list-style: none;
