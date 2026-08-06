@@ -1,6 +1,6 @@
 ---
 title: Setting up MLOps dev environment with Dagster
-date: 10-07-2025
+date: 2025-08-14
 description: 
 tags: ["MLOps", "Dagster", "data engineering", "scaling"]
 ---

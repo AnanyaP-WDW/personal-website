@@ -1,7 +1,7 @@
 ---
 
 title: Swapping Self-Attention with Fourier Transforms
-date: 10-07-2025
+date: 2025-07-10
 description: Key considerations when building machine learning systems that need to perform reliably in production environments.
 tags: ["transformers", "fast inference", "fourier transform"]
 
