@@ -85,7 +85,7 @@ def parse_blog_post(file_path: str) -> Dict:
     # Convert markdown to HTML
     html_content = markdown.markdown(
         markdown_content,
-        extensions=["codehilite", "fenced_code", "pymdownx.arithmatex"],
+        extensions=["codehilite", "fenced_code", "toc", "pymdownx.arithmatex"],
         extension_configs={
             "pymdownx.arithmatex": {
                 "generic": True,

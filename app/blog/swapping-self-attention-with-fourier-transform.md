@@ -4,28 +4,29 @@ title: Swapping Self-Attention with Fourier Transforms
 date: 2025-07-10
 description: Key considerations when building machine learning systems that need to perform reliably in production environments.
 tags: ["transformers", "fast inference", "fourier transform"]
+---
 
 # Swapping Self-Attention with Fourier Transforms
 
 ## Table of Contents
 
-1. `[Introduction](#introduction)`
-2. `[Hypothesis](#hypothesis)`
-3. `[Experiment](#experiment)`
-  - `[Assumptions and tools](#assumptions-and-tools)`
-  - `[Why FFT ensures token mixing](#why-fft-ensures-token-mixing)`
-4. `[Fine-tuning on IMDb binary classification (GPU)](#fine-tuning-on-imdb-binary-classification-gpu)`
-  - `[Results — BERT-Tiny (vanilla)](#results-bert-tiny-vanilla)`
-  - `[Results — FNet-BERT-Tiny](#results-fnet-bert-tiny)`
-  - `[Time required for training](#time-required-for-training)`
-5. `[Fine-tuning on IMDb binary classification (CPU)](#fine-tuning-on-imdb-binary-classification-cpu)`
-  - `[Graphical results](#graphical-results)`
-6. `[Conclusion](#conclusion)`
-  - `[Inference time](#inference-time)`
-  - `[Training time](#training-time)`
-  - `[Accuracy](#accuracy)`
-7. `[FNet variations](#fnet-variations)`
-8. `[References](#references)`
+1. [Introduction](#introduction)
+2. [Hypothesis](#hypothesis)
+3. [Experiment](#experiment)
+   - [Assumptions and tools](#assumptions-and-tools)
+   - [Why FFT ensures token mixing](#why-fft-ensures-token-mixing)
+4. [Fine-tuning on IMDb binary classification (GPU)](#fine-tuning-on-imdb-binary-classification-gpu)
+   - [Results — BERT-Tiny (vanilla)](#results-bert-tiny-vanilla)
+   - [Results — FNet-BERT-Tiny](#results-fnet-bert-tiny)
+   - [Time required for training](#time-required-for-training)
+5. [Fine-tuning on IMDb binary classification (CPU)](#fine-tuning-on-imdb-binary-classification-cpu)
+   - [Graphical results](#graphical-results)
+6. [Conclusion](#conclusion)
+   - [Inference time](#inference-time)
+   - [Training time](#training-time)
+   - [Accuracy](#accuracy)
+7. [FNet variations](#fnet-variations)
+8. [References](#references)
 
 ---
 
@@ -104,35 +105,39 @@ Throught the experiment, the validation loss is consistantly going up after the 
 
 ### Results — BERT-Tiny (vanilla)
 
-Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset*Vanilla-Bert-Tiny trained on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset.*
+![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.1.png)
+*Vanilla-Bert-Tiny trained on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset.*
 
 ### Results — FNet-BERT-Tiny
 
-Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset *Fnet-Bert-Tiny trianed on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
+![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.2.png)
+*Fnet-Bert-Tiny trained on GPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
 ### Time required for training
 
-![Fnet-Bert-Tiny and bert-tiny (vanilla) - Training and inference time](/
-static/images/blog/1/1.3.png)*Fnet-Bert-Tiny and bert-tiny (vanilla) on GPU - Training and inference time*
+![Fnet-Bert-Tiny and bert-tiny (vanilla) - Training and inference time](/static/images/blog/1/1.3.png)
+*Fnet-Bert-Tiny and bert-tiny (vanilla) on GPU - Training and inference time*
 
 Similar to Vanilla-Bert-Tiny finetuning, the Fnet variant also exhibits spike in validation loss after the 7th/8th epoch.
 
 ## Fine-tuning on IMDb binary classification (CPU)
 
-Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset*Vanilla-Bert-Tiny trined on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
+![Vanilla-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.4.png)
+*Vanilla-Bert-Tiny trained on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
-Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset*Fnet-Bert-Tiny trianed on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
+![Fnet-Bert-Tiny - Train, validation loss and accuracy on finetuning on the IMDB dataset](/static/images/blog/1/1.5.png)
+*Fnet-Bert-Tiny trained on CPU - Train, validation loss and accuracy on finetuning on the IMDB dataset*
 
-![Fnet-Bert-Tiny and bert-tiny (vanilla) - Training and inference time](/
-static/images/blog/1/1.6.png)*Fnet-Bert-Tiny and bert-tiny (vanilla) on CPU - Training and inference time*
+![Fnet-Bert-Tiny and bert-tiny (vanilla) - Training and inference time](/static/images/blog/1/1.6.png)
+*Fnet-Bert-Tiny and bert-tiny (vanilla) on CPU - Training and inference time*
 
 ### Graphical results
 
-![Fnet-Bert-Tiny vs bert-tiny (vanilla) - Training and inference time](/
-static/images/blog/1/1.7.png)*Fnet-Bert-Tiny vs bert-tiny (vanilla)*
+![Fnet-Bert-Tiny vs bert-tiny (vanilla) - Training and inference time](/static/images/blog/1/1.7.png)
+*Fnet-Bert-Tiny vs bert-tiny (vanilla)*
 
-![Accuracy vs inference speed by model and device](/
-static/images/blog/1/1.8.png)*Accuracy vs inference speed by model and device*
+![Accuracy vs inference speed by model and device](/static/images/blog/1/1.8.png)
+*Accuracy vs inference speed by model and device*
 
 ## Conclusion
 
@@ -155,7 +160,7 @@ static/images/blog/1/1.8.png)*Accuracy vs inference speed by model and device*
 
 These are the different implemtations of [fourier transformns in pytorch](https://docs.pytorch.org/docs/stable/fft.html)
 
-## Conclusion
+## Takeaway
 
 Task specific smaller models can be viable in situations where latency needs to be low.
 It doesn't makes sense to use local self hosted models or even API's for simple tasks like binary classification. Fourier modified transformers (along with attention based optimizations like flash attention and paged attention) can provide additional latency cuts by optimizing the overhead computational cost.  
