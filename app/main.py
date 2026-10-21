@@ -3,14 +3,26 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response
 import markdown
+import nh3
+import logging
 import os
-import re
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import List, Dict
 import glob
 
-app = FastAPI()
+# Docs/schema are not needed publicly.
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+CSP = (
+    "default-src 'self'; "
+    "script-src 'self' https://cdn.jsdelivr.net https://plausible.ananyapathak.xyz; "
+    "style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data:; "
+    "font-src 'self' https://cdn.jsdelivr.net; "
+    "connect-src 'self' https://plausible.ananyapathak.xyz; "
+    "object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+)
 
 
 @app.middleware("http")
@@ -21,6 +33,7 @@ async def security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = CSP
     return response
 
 
@@ -92,6 +105,23 @@ def parse_blog_post(file_path: str) -> Dict:
             }
         },
     )
+    # Markdown passes raw HTML through, so sanitize before rendering with |safe.
+    html_content = nh3.clean(
+        html_content,
+        tags={
+            "a", "p", "br", "hr", "em", "strong", "blockquote", "code", "pre",
+            "span", "div", "img", "ul", "ol", "li", "h1", "h2", "h3", "h4",
+            "h5", "h6", "sup", "sub", "del", "ins", "table", "thead", "tbody",
+            "tr", "th", "td",
+        },
+        attributes={
+            "*": {"class", "id"},
+            "a": {"href", "title"},
+            "img": {"src", "alt", "title"},
+        },
+        url_schemes={"http", "https", "mailto"},
+        link_rel="noopener noreferrer",
+    )
 
     # Get filename without extension for slug
     filename = os.path.basename(file_path)
@@ -126,7 +156,7 @@ def get_all_blog_posts() -> List[Dict]:
             post = parse_blog_post(file_path)
             posts.append(post)
         except Exception as e:
-            print(f"Error parsing {file_path}: {e}")
+            logging.warning("Error parsing %s: %s", file_path, e)
             continue
 
     # Sort by date (newest first)
