@@ -1,0 +1,6 @@
+# Local development only. Coolify never reads this file (it deploys
+# docker-compose.yml), so the production origin stays off the host network.
+services:
+  web:
+    ports:
+      - "127.0.0.1:8002:8002"

@@ -10,6 +10,10 @@ docker compose up
 
 App runs on **port 8002**.
 
+Deploy is Coolify (Docker Compose build pack, auto-deploy on push to `main`). `docker-compose.yml` intentionally publishes no ports — Coolify routes to internal port 8002. `docker-compose.override.yml` adds `127.0.0.1:8002` for local dev only.
+
+Tests: `python3 tests/test_blog_security.py` (or `pytest tests`).
+
 ## Structure
 
 - `app/main.py` — FastAPI entrypoint; routes for `/`, `/blog`, `/blog/{slug}`, `/sitemap.xml`, `/robots.txt`

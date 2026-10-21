@@ -1,14 +1,16 @@
-version: '3.8'
-
 services:
   web:
     build: .
-    ports:
-      - "8002:8002"
-    #volumes:
-      #- ./app:/app/app
+    # No `ports:` here on purpose: Coolify routes to port 8002 over the Compose
+    # network. A published port would expose the container directly on the host.
+    # Local dev uses docker-compose.override.yml.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     environment:
-      - PYTHONUNBUFFERED=1 
+      - PYTHONUNBUFFERED=1
     develop:
       watch:
         - action: sync
