@@ -1,28 +1,30 @@
 ---
-title: Setting up MLOps dev environment with Dagster
+
+## title: Setting up MLOps dev environment with Dagster
+
 date: 2025-08-14
 description: 
 tags: ["MLOps", "Dagster", "data engineering", "scaling"]
----
 
 # Setting up MLOps dev environment with Dagster
 
 ## Table of Contents
 
-1. [`Why specialised tooling for MLOps`](#why-specialised-tooling-for-mlops)
-2. [`Dagster`](#dagster)
-3. [`Dockerfile for workflows`](#dockerfile-for-workflows)
-4. [`Repo.py test workflow`](#repo-py-test-workflow)
+1. [Why specialised tooling for MLOps](#why-specialised-tooling-for-mlops)
+2. [Dagster](#dagster)
+3. [Dockerfile for workflows](#dockerfile-for-workflows)
+4. [Repo.py test workflow](#repo-py-test-workflow)
 
 ---
 
 ## Why specialised tooling for MLOps
 
 MLOps is a specialised subset of DevOps mainly catering to building pipelines for creating training data, feature engineering, training models, sclaed hyper-parameter tuning, evaluations and benchmarks. The main requirements can be summarised as follows:
-1) Scheduler 
-2) Persistent storage and a good UI to view the runs
-3) Ability to add triggers, cron etc
-4) Effecient hardware utilization
+
+1. Scheduler
+2. Persistent storage and a good UI to view the runs
+3. Ability to add triggers, cron etc
+4. Effecient hardware utilization
 
 Creating something from scratch is an overhead on the mlops and engineering teams. Thats why teams try to use pre-exisitng tooling that has been tested through oss development. There are many options available in the market like airflow, prefect, dagster, kubeflow, flyte etc. In this blog I will be creaging a dev environment using Dagster.
 
@@ -202,6 +204,8 @@ volumes:
 
 ```
 
+
+
 ## Dockerfile for workflows
 
 Here is an example Dockerfile for the `test_workflow` service. This image contains your Dagster user code.
@@ -231,6 +235,8 @@ EXPOSE 4000
 # to run other commands against your code
 CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "repo.py"]
 ```
+
+
 
 ## Repo.py test workflow
 

@@ -23,15 +23,15 @@ tags: ["MLOps", "Parquet", "PyArrow", "Kubernetes", "Machine Learning"]
 
 ## Why OOM Happens in Training Jobs
 
-Troubleshooting out-of-memory (OOM) errors in MLOps systems is often overlooked, overshadowed by trendier topics like model training, architecture, and tuning. Running real-world data engineering and ML pipelines on a Kubernetes (k8s) cluster is a complex process, requiring hours of debugging seemingly innocuous bugs. This involves digging through logs and tediously reading traces. One issue I have constantly faced over the years is the OOMKilled error — a Kubernetes status that forcefully terminates a pod because a process exceeded the allocated memory on the host node. One solution is to increase the hardware limits of your pod or split the job across pods. A more rigorous solution is to reduce both intermediate and final object memory — this is where Parquet and Arrow come in.
-In MLOps practice, OOMKilled usually occurs when a pipeline loads all splits (`train`, `val`, `test`) into memory at once and then creates additional copies, or during complex ETL (data ingestion, cleaning, validation, labeling, etc.) and data transformation jobs. These objects can be of different types:
+Troubleshooting out-of-memory (OOM) errors in MLOps systems is a persistant error that I face almost always whenever I am building data/ML pipelines. Running real-world data engineering and ML pipelines on a Kubernetes (k8s) cluster is a complex process, requiring hours of debugging seemingly innocuous bugs. This involves digging through logs and tediously reading traces. One issue I have constantly faced over the years is the OOMKilled error — a Kubernetes status that forcefully terminates a pod because a process exceeded the allocated memory on the host node. One solution is to increase the hardware limits of your pod or split the job across pods. A more rigorous solution is to reduce both intermediate and final object memory — this is where Parquet and Arrow come in.
+In MLOps practice, OOMKilled can occur when a pipeline loads all splits (`train`, `val`, `test`) into memory at once and then creates additional copies, or during complex ETL (data ingestion, cleaning, validation, labeling, etc.) and data transformation jobs. These objects can be of different types:
 
 - S3 bytes in memory
 - NumPy arrays
 - PyTorch tensors
 - Temporary transformed copies
 
-If data is large, peak memory can be several times larger than the dataset itself.
+If data is large, peak memory can be several times larger than the dataset itself (becuase of copies).
 
 ---
 
@@ -41,7 +41,7 @@ Parquet is a columnar, compressed storage format designed to cut peak object mem
 
 Key benefits:
 
-- Stores columns efficiently (good compression)
+- Stores column data efficiently (good compression)
 - Reads only needed columns when possible
 - Supports chunked reading
 - Good ecosystem for analytical/ML tabular data
