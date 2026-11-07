@@ -6,7 +6,6 @@ description: Key considerations when building machine learning systems that need
 tags: ["transformers", "fast inference", "fourier transform"]
 ---
 
-# Swapping Self-Attention with Fourier Transforms
 
 ## Table of Contents
 

@@ -5,7 +5,6 @@ description: A practical pattern for preventing OOMKilled training jobs using Pa
 tags: ["MLOps", "Parquet", "PyArrow", "Kubernetes", "Machine Learning"]
 ---
 
-# Reducing OOM in ML Pipelines with Parquet + PyArrow + Streaming Standardization
 
 ## Index
 

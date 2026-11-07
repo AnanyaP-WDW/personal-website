@@ -6,7 +6,6 @@ description: The aim of this project is to port ESM Cambrian 300M to a single C+
 tags: ["protein language models", "c++", "ggml", "quantization", "inference"]
 ---
 
-# Running a Protein Language Model Without Python
 
 ## Table of Contents
 
@@ -99,6 +98,7 @@ F16's residual error is pure rounding — a separate F32 build matches the refer
 | short (47 tokens) | 95.7 seq/s |
 | medium (235 tokens) | 38.3 seq/s |
 | long (850 tokens) | 9.5 seq/s |
+
 
 F16 on Metal is the fastest configuration — Apple Silicon has real F16 tensor cores, and for a 300M model the dequantization cost of smaller formats outweighs their bandwidth savings. **Quantization's value here is file size and RAM, not speed.**
 
