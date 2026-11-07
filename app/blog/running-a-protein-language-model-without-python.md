@@ -1,8 +1,8 @@
 ---
 
-title: Running a Protein Language Model Without Python
-date: 2026-10-11
-description: We ported ESM Cambrian 300M to a single C++ binary on ggml/llama.cpp — same embeddings as PyTorch, no Python at inference time, model fits in ~230 MB.
+title: ESMC.cpp - Running a Protein Language Model Without Python
+date: 2026-11-7
+description: The aim of this project is to port ESM Cambrian 300M to a single C++ binary on ggml/llama.cpp — same embeddings as PyTorch, no Python at inference time, model fits in ~230 MB.
 tags: ["protein language models", "c++", "ggml", "quantization", "inference"]
 ---
 
@@ -13,8 +13,8 @@ tags: ["protein language models", "c++", "ggml", "quantization", "inference"]
 1. [The idea](#the-idea)
 2. [What is a protein language model?](#what-is-a-protein-language-model)
 3. [Why port it to C++?](#why-port-it-to-c)
-4. [What made this hard (the bugs that lie)](#what-made-this-hard-the-bugs-that-lie)
-5. [How we proved it was correct](#how-we-proved-it-was-correct)
+4. [What made this hard](#what-made-this-hard)
+5. [Validation of the port](#validation-of-the-port)
 6. [The numbers](#the-numbers)
 7. [Quantization: smaller models, honest quality](#quantization-smaller-models-honest-quality)
 8. [Does it still work on real biology?](#does-it-still-work-on-real-biology)
@@ -26,57 +26,48 @@ tags: ["protein language models", "c++", "ggml", "quantization", "inference"]
 ---
 
 ## The idea
+[ESM Cambrian (ESM-C)](https://www.evolutionaryscale.ai/blog/esm-cambrian) is a priotein model ie. when I input a protein sequence it outputs back a numerical "embedding"/ representtion of the sequence. This protein repsresetation backbone can in turn be finetuned to predict mutations, functions or toxicity etc. 
 
-[ESM Cambrian (ESM-C)](https://www.evolutionaryscale.ai/blog/esm-cambrian) is a protein language model from EvolutionaryScale. Feed it a protein sequence — a string of letters like `MKVLAIGTGCGASHLG...` — and it gives you back a numerical "embedding" for every position in the sequence. Those embeddings power tasks like predicting which mutations break a protein, or what function a protein has.
+The official way to run ESM-C is PyTorch. That works great on a GPU server. It works poorly on a laptop, an offline batch machine, an embedded device, or anywhere you would rather ship one binary than a Python environment, PyTorch, and a pile of dependencies.
 
-The official way to run ESM-C is PyTorch. That works great on a GPU server. It works badly on a laptop, an offline batch machine, an embedded device, or anywhere you would rather ship one binary than a Python environment, PyTorch, and a pile of dependencies.
+The hypothesis: the llama.cpp project proved that large *language* models can run as a single self-contained C++ binary. Can the same engineering discipline work for a *protein* model?
 
-So we asked: the llama.cpp project proved you can run large *language* models as a single self-contained C++ binary, with models quantized down to a few hundred megabytes. Can the same engineering discipline work for a *protein* model?
+The answer — a standalone C/C++ runtime for ESM-C 300M built on top of [ggml](https://github.com/ggml-org/llama.cpp) (the tensor library behind llama.cpp), with Apple Metal GPU acceleration, a GGUF model format, and a quantizer. No Python at inference time. The full model, 4-bit quantized, is **228 MB on disk** and uses **~520 MB of RAM**. It reproduces the original PyTorch embeddings to a mean per-residue cosine similarity of **0.9999996** — the remaining gap is pure floating-point rounding, not a mistake.
 
-The answer is **ep** — a standalone C/C++ runtime for ESM-C 300M built on [ggml](https://github.com/ggml-org/llama.cpp) (the tensor library behind llama.cpp), with Apple Metal GPU acceleration, a GGUF model format, and a quantizer. No Python at inference time. The full model, 4-bit quantized, is **228 MB on disk** and uses **~520 MB of RAM**. And it reproduces the original PyTorch embeddings to a mean per-residue cosine similarity of **0.9999996** — the remaining gap is pure floating-point rounding, not a mistake.
-
-This post is about how we got there, the four silent bugs that nearly shipped wrong science, and the numbers.
+This post is about how I got there, the three major silent bugs that nearly shipped wrong science, and the numbers.
 
 ## What is a protein language model?
 
-Proteins are chains of amino acids. There are 20 of them, written as single letters (A, C, D, E, ...). EvolutionaryScale's models are trained on hundreds of millions of protein sequences the way a text LLM is trained on books — except the "words" are amino acids, and the goal is to understand each position *in the context of the whole chain*.
+The ESMC models are trained on hundreds of millions of protein sequences the way a text LLM is trained on books — except the "words" are amino acids, and the goal is to understand each position *in the context of the whole chain*.
 
-Unlike GPT-style models, ESM-C is **encoder-only**: one forward pass looks at the entire sequence in both directions (no left-to-right generation), and produces one vector per amino acid. There is no autoregressive loop, no growing key/value cache — just a single clean input→output mapping. That makes it a natural candidate for a lightweight runtime.
+Unlike GPT-style models, ESM-C is **encoder-only**: one forward pass looks at the entire sequence in both directions (no left-to-right generation), and produces one vector per amino acid. There is no autoregressive loop, no growing key/value cache — just a single clean input-output mapping. That makes it a natural candidate for a lightweight runtime.
 
-ESM-C comes in 300M, 600M, and 6B parameter sizes. We ported the 300M — small enough to experiment with, big enough to be useful.
+ESM-C comes in 300M, 600M, and 6B parameter sizes. I ported the 300M — small enough to experiment with, big enough to be useful.
 
 ## Why port it to C++?
 
-The reasons sound mundane until you have fought them:
-
-- **Cold start.** Importing PyTorch and loading a checkpoint takes seconds to tens of seconds. A C++ binary loads in a fraction of that.
+- **Cold start.** Importing PyTorch and loading a checkpoint can take upto 10 seconds. A C++ binary loads in a fraction of that.
 - **Dependencies.** Python, PyTorch, the right CUDA/Metal versions... vs. one executable and one model file.
-- **Memory.** The PyTorch stack has overhead. Our worst measured configuration (full F32, longest sequences) peaks at 2.6 GB — and the recommended deployment config (Metal, 4-bit) sits at ~520 MB.
+- **Memory.** The PyTorch stack has overhead. The worst measured configuration (full F32, longest sequences) peaks at 2.6 GB — and the recommended deployment config (Metal, 4-bit) sits at ~520 MB.
 - **Embeddability.** A C library can be called from anything. A Python process cannot.
 
-The bet was that llama.cpp's substrate — ggml's CPU and Metal backends, the GGUF single-file format, the block-quantization kernels — would transfer to a *bidirectional encoder*. It mostly did. The interesting parts were the places it didn't, which is most of the story.
+The idea was that llama.cpp's backbone — ggml's CPU and Metal backends, the GGUF single-file format, the block-quantization kernels — would transfer to a *bidirectional encoder*. It mostly did. The interesting parts were the places it didn't, which is what most of this post is about.
 
-## What made this hard (the bugs that lie)
+## What made this hard 
 
 Porting a transformer is not the hard part. The hard part is that **numerical ports fail silently**: the code runs, the output looks like plausible numbers, and it is subtly, biologically wrong. Nothing crashes. Nothing warns you.
 
 ESM-C is not ESM2 with different weights. It has a gated SwiGLU feed-forward (three weight matrices instead of two), no biases anywhere except one LayerNorm, rotary position embeddings in the NeoX style, a query-scaling step that must happen *before* rotation, and a residual scaling factor. Get any of these wrong and you don't get an error — you get confident nonsense.
 
-Four bugs from our port, each of which produced wrong embeddings without raising a single exception:
+Three major bugs from the port, each of which produced wrong embeddings without raising a single exception:
 
-**1. The two amino acids that broke everything.** ESM-C's vocabulary is only 33 tokens (20 amino acids plus special tokens), so it's a simple letter→number lookup table. We got the order of two of them wrong: glutamine (Q) and asparagine (N) were swapped. Test sequences that didn't contain Q or N passed validation perfectly. Longer real-world sequences silently dropped to ~0.95 cosine similarity — looks fine on a plot, wrong for any downstream science. The lesson we now repeat: **your test set must exercise the whole alphabet, and one short smoke-test sequence is never enough.**
+**1. The two amino acids mistake.** ESM-C's vocabulary is only 33 tokens (20 amino acids plus special tokens), so it's a simple letter-number lookup table. I got the order of two of them wrong: glutamine (Q) and asparagine (N) were swapped. Test sequences that didn't contain Q or N passed validation perfectly. Longer real-world sequences silently dropped to ~0.95 cosine similarity — looks fine on a plot, wrong for any downstream science. 
 
-**2. Scale in the wrong order.** The query matrix must be scaled by 1/√d *before* rotary position embedding is applied. We scaled it after. Layer-0 query norms were off by **700%**. After moving one line, the error dropped to 0.0025%.
+**2. Scale in the wrong order.** The query matrix must be scaled by 1/√d *before* rotary position embedding is applied. I scaled it after. Layer-0 query norms were off by **700%**. After moving one line, the error dropped to 0.0025%.
 
-**3. A missing newline byte.** Our .npy file writer omitted the trailing newline in the header. Every embedding came out as NaN. The validator initially *passed* the NaN outputs, because in Python `nan <= 0.999` evaluates to False — so the "did it fail the threshold?" check silently treated NaN as success. We added explicit finiteness checks. (This one is a great party trick: a one-byte bug that turns all your science into Not-a-Number, plus a language quirk that hides it.)
+**3. The forgotten bias.** ESM-C's feed-forward LayerNorm has a bias term. The original runtime dropped it. It slipped through my implementation. After the fix, every cached reference embedding in the project had to be regenerated.
 
-**4. The bias both of us forgot.** ESM-C's feed-forward LayerNorm has a bias term. The original runtime dropped it. So did our PyTorch reference — the model and its yardstick were wrong *together*, so agreement checks passed. It took a careful re-read of the checkpoint to find it. After the fix, every cached reference embedding in the project had to be regenerated.
-
-That fourth bug is the one that keeps us honest: **validating against your own reimplementation only proves you reproduced your assumptions.** Which is why we built the next section carefully.
-
-## How we proved it was correct
-
-We validate bottom-up, not with a single end-to-end check:
+## Validation of the port
 
 1. **Tokenizer**: exact token-ID match against the official tokenizer.
 2. **Layer-0 attention probe**: after the first layer, compare query/key vector norms against a hand-written PyTorch reference of the native checkpoint (≤5% relative error). This catches scaling-order and rotation-style bugs *early*, before they compound through 30 layers.
