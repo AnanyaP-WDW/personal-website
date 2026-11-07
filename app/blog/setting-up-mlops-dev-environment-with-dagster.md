@@ -1,6 +1,6 @@
 ---
 
-## title: Setting up MLOps dev environment with Dagster
+title: Setting up MLOps dev environment with Dagster
 
 date: 2025-08-14
 description: 

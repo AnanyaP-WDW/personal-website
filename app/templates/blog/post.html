@@ -68,6 +68,9 @@
             <p class="post-date"><time datetime="{{ post.date_iso }}">{{ post.date }}</time></p>
             {% endif %}
             <h1>{{ post.title }}</h1>
+            {% if post.description %}
+            <p class="post-desc">{{ post.description }}</p>
+            {% endif %}
         </div>
 
         <article class="reading">

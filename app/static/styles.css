@@ -390,6 +390,12 @@ h3 {
     max-width: 22ch;
 }
 
+.post-head .post-desc {
+    color: var(--muted);
+    margin: -0.5rem 0 1.5rem;
+    max-width: 60ch;
+}
+
 .reading {
     max-width: 70ch;
 }
