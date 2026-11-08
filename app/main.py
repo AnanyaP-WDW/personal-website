@@ -6,6 +6,8 @@ import markdown
 import nh3
 import logging
 import os
+import re
+import struct
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import List, Dict
@@ -42,6 +44,53 @@ templates = Jinja2Templates(directory="app/templates")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
+def image_dimensions(src: str):
+    """Width/height for a local PNG, so images reserve space before loading."""
+    if not src.startswith("/static/"):
+        return None
+    try:
+        with open(os.path.join("app", src.lstrip("/")), "rb") as f:
+            head = f.read(24)
+    except OSError:
+        return None
+    if head[:8] != b"\x89PNG\r\n\x1a\n":
+        return None
+    return struct.unpack(">II", head[16:24])
+
+
+IMG_TAG = re.compile(r"<img\b[^>]*>")
+
+
+def add_image_attrs(html_content: str) -> str:
+    """Lazy-load local images and give them intrinsic size (avoids layout shift)."""
+
+    def repl(match: re.Match) -> str:
+        tag = match.group(0).rstrip("/>").rstrip()
+        if "loading=" in tag:
+            return tag + ">"
+        attrs = ' loading="lazy" decoding="async"'
+        src = re.search(r'src="([^"]*)"', tag)
+        size = image_dimensions(src.group(1)) if src else None
+        if size:
+            attrs += f' width="{size[0]}" height="{size[1]}"'
+        return tag + attrs + ">"
+
+    return IMG_TAG.sub(repl, html_content)
+
+
+def needs_math(html_content: str) -> bool:
+    """Whether a post actually uses LaTeX, so MathJax is only loaded when needed."""
+    return bool(re.search(r"\\\(|\\\[|\$\$", html_content))
+
+
+def get_related_posts(post: Dict, posts: List[Dict], limit: int = 3) -> List[Dict]:
+    """Other posts ranked by shared tags, then recency."""
+    tags = set(post["tags"])
+    others = [p for p in posts if p["slug"] != post["slug"]]
+    others.sort(key=lambda p: (len(tags & set(p["tags"])), p["date"]), reverse=True)
+    return others[:limit]
 
 
 def normalize_date(value: str) -> str:
@@ -122,6 +171,7 @@ def parse_blog_post(file_path: str) -> Dict:
         url_schemes={"http", "https", "mailto"},
         link_rel="noopener noreferrer",
     )
+    html_content = add_image_attrs(html_content)
 
     # Get filename without extension for slug
     filename = os.path.basename(file_path)
@@ -169,6 +219,40 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/consulting")
+async def consulting(request: Request):
+    return templates.TemplateResponse("consulting.html", {"request": request})
+
+
+@app.get("/feed.xml")
+async def feed():
+    posts = get_all_blog_posts()[:20]
+    root = ET.Element("rss", {"version": "2.0"})
+    channel = ET.SubElement(root, "channel")
+    ET.SubElement(channel, "title").text = "Ananya Pathak — ML Engineering Blog"
+    ET.SubElement(channel, "link").text = "https://ananyapathak.xyz/blog"
+    ET.SubElement(channel, "description").text = (
+        "Notes on ML engineering, protein language models, and production data pipelines."
+    )
+
+    for post in posts:
+        item = ET.SubElement(channel, "item")
+        ET.SubElement(item, "title").text = post["title"]
+        ET.SubElement(item, "link").text = f"https://ananyapathak.xyz/blog/{post['slug']}"
+        ET.SubElement(item, "guid").text = f"https://ananyapathak.xyz/blog/{post['slug']}"
+        if post["description"]:
+            ET.SubElement(item, "description").text = post["description"]
+        if post["date_iso"]:
+            ET.SubElement(item, "pubDate").text = datetime.fromisoformat(
+                post["date_iso"]
+            ).strftime("%a, %d %b %Y 00:00:00 +0000")
+
+    return Response(
+        content=ET.tostring(root, encoding="unicode", xml_declaration=True),
+        media_type="application/rss+xml",
+    )
+
+
 @app.get("/sitemap.xml")
 async def sitemap():
     root = ET.Element("urlset", {"xmlns": "http://www.sitemaps.org/schemas/sitemap/0.9"})
@@ -184,7 +268,9 @@ async def sitemap():
             ET.SubElement(url, "priority").text = priority
 
     add("/", changefreq="monthly", priority="1.0")
+    add("/consulting", changefreq="monthly", priority="0.9")
     add("/blog", changefreq="weekly", priority="0.8")
+    add("/feed.xml", changefreq="weekly", priority="0.3")
     for post in get_all_blog_posts():
         add(
             f"/blog/{post['slug']}",
@@ -229,7 +315,13 @@ async def blog_post(request: Request, slug: str):
         raise HTTPException(status_code=404, detail="Blog post not found")
 
     return templates.TemplateResponse(
-        "blog/post.html", {"request": request, "post": post}
+        "blog/post.html",
+        {
+            "request": request,
+            "post": post,
+            "related": get_related_posts(post, posts),
+            "math": needs_math(post["content"]),
+        },
     )
 
 

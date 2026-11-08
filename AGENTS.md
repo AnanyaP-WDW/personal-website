@@ -16,8 +16,8 @@ Tests: `python3 tests/test_blog_security.py` (or `pytest tests`).
 
 ## Structure
 
-- `app/main.py` — FastAPI entrypoint; routes for `/`, `/blog`, `/blog/{slug}`, `/sitemap.xml`, `/robots.txt`
-- `app/templates/` — Jinja2 templates (index, blog index, blog post)
+- `app/main.py` — FastAPI entrypoint; routes for `/`, `/consulting`, `/blog`, `/blog/{slug}`, `/feed.xml`, `/sitemap.xml`, `/robots.txt`
+- `app/templates/` — Jinja2 templates (index, consulting, blog index, blog post)
 - `app/blog/*.md` — Blog posts as Markdown with YAML frontmatter
 - `app/static/` — CSS, images, sitemap, robots.txt
 

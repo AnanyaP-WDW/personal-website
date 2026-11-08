@@ -48,10 +48,25 @@
     }
     </script>
 
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://ananyapathak.xyz/"},
+            {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://ananyapathak.xyz/blog"},
+            {"@type": "ListItem", "position": 3, "name": {{ post.title | tojson }}, "item": "https://ananyapathak.xyz/blog/{{ post.slug }}"}
+        ]
+    }
+    </script>
+
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="alternate" type="application/rss+xml" title="Ananya Pathak — Blog" href="/feed.xml">
 
     <script src="/static/js/site.js"></script>
+    {% if math %}
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    {% endif %}
 
     <script defer data-domain="ananyapathak.xyz" src="https://plausible.ananyapathak.xyz/js/script.file-downloads.hash.outbound-links.tagged-events.js"></script>
 </head>
@@ -60,6 +75,7 @@
         <span class="brand"><a href="/" style="color:inherit;">Ananya Pathak</a></span>
         <a href="/">Home</a>
         <a href="/blog">Blog</a>
+        <a href="/consulting">Consulting</a>
     </div>
 
     <main class="container">
@@ -87,6 +103,20 @@
 
         <p style="margin-top: 2.5rem;"><a href="/blog">&larr; Back to all posts</a></p>
     </main>
+
+    {% if related %}
+    <section class="container related">
+        <div class="ctitle">related posts</div>
+        <ul class="post-list">
+            {% for r in related %}
+            <li>
+                <span class="pl-date">{{ r.date }}</span>
+                <span class="pl-title"><a href="/blog/{{ r.slug }}">{{ r.title }}</a></span>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
 
     <footer>
         <div class="container">
