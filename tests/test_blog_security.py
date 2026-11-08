@@ -4,7 +4,12 @@ import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.main import parse_blog_post  # noqa: E402
+from app.main import (  # noqa: E402
+    add_image_attrs,
+    get_related_posts,
+    needs_math,
+    parse_blog_post,
+)
 
 
 def render(markdown_body: str) -> str:
@@ -36,7 +41,34 @@ def test_legit_markdown_survives():
     assert "\\(x^2\\)" in html
 
 
+def test_local_images_get_size_and_lazy_loading():
+    html = add_image_attrs('<p><img alt="x" src="/static/images/profile.png"></p>')
+    assert 'width="480"' in html and 'height="480"' in html
+    assert 'loading="lazy"' in html
+    # remote images are left alone apart from lazy loading
+    remote = add_image_attrs('<img src="https://example.com/a.png">')
+    assert "width=" not in remote and "loading=" in remote
+
+
+def test_math_detection():
+    assert needs_math("<p>inline \\(x^2\\)</p>")
+    assert not needs_math("<p>plain text</p>")
+
+
+def test_related_posts_share_tags_first():
+    posts = [
+        {"slug": "a", "tags": ["x"], "date": "2026-01-01"},
+        {"slug": "b", "tags": ["x", "y"], "date": "2025-01-01"},
+        {"slug": "c", "tags": [], "date": "2026-06-01"},
+    ]
+    related = get_related_posts(posts[0], posts, limit=2)
+    assert [p["slug"] for p in related] == ["b", "c"]
+
+
 if __name__ == "__main__":
     test_dangerous_html_is_stripped()
     test_legit_markdown_survives()
+    test_local_images_get_size_and_lazy_loading()
+    test_math_detection()
+    test_related_posts_share_tags_first()
     print("ok")
