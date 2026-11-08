@@ -3,7 +3,7 @@
 title: Setting up MLOps dev environment with Dagster
 
 date: 2025-08-14
-description: 
+description: A reproducible local Dagster environment in Docker Compose — Postgres, MinIO and a workflow image — for developing and testing data pipelines before deploying them.
 tags: ["MLOps", "Dagster", "data engineering", "scaling"]
 
 # Setting up MLOps dev environment with Dagster
